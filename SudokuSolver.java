@@ -2,6 +2,7 @@ package hu.advjava.mcpsudoku;
 
 import java.util.Arrays;
 import java.util.NoSuchElementException;
+import java.util.stream.IntStream;
 
 public class SudokuSolver {
 	public static enum Difficulty {
@@ -142,7 +143,29 @@ public class SudokuSolver {
     	// TODO
     }
 
+    /**
+     * Checks board is safe or not. That means given num can be placed in [row][col]
+     * That's based on Sudoku rules.
+     * If given num is in given column, row or in 3x3 box then board is safe.
+     * @param board 2D array with int values that represent board and its values.
+     * @param row Given row
+     * @param col Given column
+     * @param num The number which will be checked that can be placed in [row][col]
+     * @return True if it is possible to place num in board[row][col], otherwise False.
+     */
     private static boolean isSafe(int[][] board, int row, int col, int num) {
-    	return false; //TODO
+    	boolean inRow = IntStream.range(0, 9).filter(c -> c != col).anyMatch(c -> board[row][c] == num);
+    	
+    	boolean inCol = IntStream.range(0, 9).filter(r -> r != row).anyMatch(r -> board[r][col] == num);
+    	
+    	int startRow = row - row % 3;
+    	int startColumn = col - col % 3;
+    	boolean inBox = IntStream.range(startRow, startRow + 3)
+    			.flatMap(r -> IntStream.range(startColumn, startColumn + 3)
+    					.filter(c -> !(r == row && c == col))
+    					.map(c -> board[r][c]))
+    			.anyMatch(cell -> cell == num);
+    	
+    	return !inRow && !inCol && !inBox;
     }
 }
