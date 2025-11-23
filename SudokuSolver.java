@@ -1,9 +1,12 @@
 package hu.advjava.mcpsudoku;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -121,8 +124,32 @@ public class SudokuSolver {
     	} catch (Exception e) { return new int[9][9]; }
     }
 
-    private static /* maybe a board, maybe nothing */ maybeGenerateBoard(Difficulty diff, SudokuSolverDLX ssdlx) {
-    	// TODO
+    private static int[][] maybeGenerateBoard(Difficulty diff, SudokuSolverDLX ssdlx) {
+    	int[][] board = new int[9][9];
+    	
+    	if (!ssdlx.solve(board)) return null;
+    	
+    	List<Integer> indices = IntStream.range(0, 81)
+    			.boxed()
+    			.collect(Collectors.toList());
+    	Collections.shuffle(indices);
+    	
+    	int[][] puzzle = deepCopy(board);
+
+    	indices.stream()
+    			.takeWhile(i -> countFilledCells(puzzle) > diff.getMinNum())
+    			.forEach(i -> {
+    				int row = i / 9;
+    				int col = i % 9;
+    				int savedValue = puzzle[row][col];
+    				
+    				puzzle[row][col] = 0;
+    				
+    				if (ssdlx.countSolutions(deepCopy(puzzle), 2L) != 1) puzzle[row][col] = savedValue;
+    			});
+    	
+    	int filled = countFilledCells(puzzle);
+    	return (filled >= diff.getMinNum() && filled <= diff.getMaxNum()) ? puzzle : null;
     }
 
 	public static State solveCount(int[][] board) {
