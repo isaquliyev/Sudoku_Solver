@@ -44,17 +44,30 @@ public class SudokuSolver {
 	}
 
 	public static enum State {
-		SOLVED,
-		INVALID,
-		SOLVEDUNIQUE,
-		SOLVEDTWO,
-		SOLVEDTHREE,
-		SOLVEDMANY;
+		SOLVED(-1),
+		INVALID(0),
+		SOLVEDUNIQUE(1),
+		SOLVEDTWO(2),
+		SOLVEDTHREE(3),
+		SOLVEDMANY(Integer.MAX_VALUE);
 
-		//TODO: add parameters, constructor, getters
+		private final int value;
+
+		private State(int value) {
+			this.value = value;
+		}
+
+		public int getValue() { return value; }
 
 		public static State stateFromSols(long sols) {
-			return null; //TODO
+			if (sols < 0) return SOLVED;
+			return switch (sols) {
+				case 0 -> INVALID;
+				case 1 -> SOLVEDUNIQUE;
+				case 2 -> SOLVEDTWO;
+				case 3 -> SOLVEDTHREE;
+				default -> SOLVEDMANY;
+			};
 		}
 	}
 
