@@ -2,8 +2,10 @@ package hu.advjava.mcpsudoku;
 
 import java.util.Arrays;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class SudokuSolver {
 	public static enum Difficulty {
@@ -104,11 +106,10 @@ public class SudokuSolver {
     }
 
     public static <T> T findContent(Supplier<T> lambda) {
-    	T result;
-    	do {
-    		result = lambda.get();
-    	} while (result == null);
-    	return result;
+    	return Stream.generate(lambda)
+    			.filter(Objects::nonNull)
+    			.findFirst()
+    			.orElseThrow();
     }
 
     public static int[][] generate(String difficulty) {
