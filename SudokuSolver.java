@@ -73,7 +73,10 @@ public class SudokuSolver {
 
 	/** Defensive deep copy to avoid aliasing */
     public static int[][] deepCopy(int[][] src) {
-    	return null; //TODO
+    	if (src == null) return null;
+    	return Arrays.stream(src)
+    			.map(row -> Arrays.copyOf(row, row.length))
+    			.toArray(int[][]::new);
     }
 
     /**
@@ -91,7 +94,11 @@ public class SudokuSolver {
     }
 
     public static long countFilledCells(int[][] board) {
-    	return 0; //TODO
+    	if (board == null) return 0;
+    	return Arrays.stream(board)
+    			.flatMapToInt(Arrays::stream)
+    			.filter(cell -> cell != 0)
+    			.count();
     }
 
     public static ????? findContent(?????? lambda) {
