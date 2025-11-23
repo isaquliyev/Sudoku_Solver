@@ -154,18 +154,12 @@ public class SudokuSolver {
      * @return True if it is possible to place num in board[row][col], otherwise False.
      */
     private static boolean isSafe(int[][] board, int row, int col, int num) {
-    	boolean inRow = IntStream.range(0, 9).filter(c -> c != col).anyMatch(c -> board[row][c] == num);
-    	
-    	boolean inCol = IntStream.range(0, 9).filter(r -> r != row).anyMatch(r -> board[r][col] == num);
-    	
-    	int startRow = row - row % 3;
-    	int startColumn = col - col % 3;
-    	boolean inBox = IntStream.range(startRow, startRow + 3)
-    			.flatMap(r -> IntStream.range(startColumn, startColumn + 3)
-    					.filter(c -> !(r == row && c == col))
-    					.map(c -> board[r][c]))
-    			.anyMatch(cell -> cell == num);
-    	
-    	return !inRow && !inCol && !inBox;
+        return IntStream.range(0, 9).noneMatch(c -> c != col && board[row][c] == num)
+                && IntStream.range(0, 9).noneMatch(r -> r != row && board[r][col] == num)
+                && IntStream.range(0, 9).noneMatch(i -> {
+            int r = row - row % 3 + i / 3;
+            int c = col - col % 3 + i % 3;
+            return !(r == row && c == col) && board[r][c] == num;
+        });
     }
 }
