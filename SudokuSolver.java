@@ -2,6 +2,7 @@ package hu.advjava.mcpsudoku;
 
 import java.util.Arrays;
 import java.util.NoSuchElementException;
+import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
 public class SudokuSolver {
@@ -102,8 +103,12 @@ public class SudokuSolver {
     			.count();
     }
 
-    public static ????? findContent(?????? lambda) {
-    	// TODO
+    public static <T> T findContent(Supplier<T> lambda) {
+    	T result;
+    	do {
+    		result = lambda.get();
+    	} while (result == null);
+    	return result;
     }
 
     public static int[][] generate(String difficulty) {
