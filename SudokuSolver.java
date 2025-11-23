@@ -1,24 +1,45 @@
 package hu.advjava.mcpsudoku;
 
+import java.util.Arrays;
+import java.util.NoSuchElementException;
+
 public class SudokuSolver {
 	public static enum Difficulty {
-		NONE is between 39-81
-		EASY is between 36-38
-		MEDIUM is between 33-35
-		HARD is between 29-32
-		EXPERT is between 26-28
-		MASTER is between 23-25
-		EXTREME is between 17-22
-		IMPOSSIBLE is between  0-16
+		NONE(39, 81),
+		EASY(36, 38),
+		MEDIUM(33, 35),
+		HARD(29, 32),
+		EXPERT(26, 28),
+		MASTER(23, 25),
+		EXTREME(17, 22),
+		IMPOSSIBLE(0, 16);
 
-		//TODO: add parameters, constructor, getters
+		private final long minNum;
+		private final long maxNum;
+
+		private Difficulty(long minNum, long maxNum) {
+			this.minNum = minNum;
+			this.maxNum = maxNum;
+		}
+
+		public long getMinNum() { return minNum; }
+
+		public long getMaxNum() { return maxNum; }
 
 		public static Difficulty stringToDifficulty(String difficulty) {
-			return null; //TODO
+			if (difficulty == null) 
+				throw new NoSuchElementException("Difficulty string is null");
+			return Arrays.stream(values())
+					.filter(d -> d.name().equalsIgnoreCase(difficulty))
+					.findFirst()
+					.orElseThrow(() -> new NoSuchElementException("No difficulty found for: " + difficulty));
 		}
 
 		public static Difficulty numToDifficulty(long num) {
-			return null; //TODO
+    return Arrays.stream(values())
+            .filter(d -> d.minNum <= num && num <= d.maxNum)
+            .findFirst()
+            .orElse(NONE);
 		}
 	}
 
