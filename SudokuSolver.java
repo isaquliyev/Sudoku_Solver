@@ -1,7 +1,14 @@
 package hu.advjava.mcpsudoku;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.PrintWriter;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
@@ -43,11 +50,11 @@ public class SudokuSolver {
 
         public static Difficulty stringToDifficulty(String difficulty) {
             if (difficulty == null)
-                throw new NoSuchElementException("Difficulty string is null");
+                throw new NoSuchElementException("Difficulty string shouldn't be null");
             return Arrays.stream(values())
                     .filter(d -> d.name().equalsIgnoreCase(difficulty))
                     .findFirst()
-                    .orElseThrow(() -> new NoSuchElementException("No difficulty found for: " + difficulty));
+                    .orElseThrow(() -> new NoSuchElementException("No difficulty found for `" + difficulty + "`"));
         }
 
         public static Difficulty numToDifficulty(long num) {
@@ -102,14 +109,62 @@ public class SudokuSolver {
      * Load a Sudoku board from a file (.txt = text, .sud = binary)
      */
     public static int[][] load(File file) throws IOException, ClassNotFoundException {
-        return null; //TODO
+        String filename = file.getName().toLowerCase();
+        
+        if (filename.endsWith(".sud")) {
+            try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
+                Object obj = ois.readObject();
+                if (obj instanceof int[][]) return (int[][]) obj;
+                else throw new IOException("int[][] expected, but `" + obj.getClass().getName() + "` found");
+            }
+        }
+
+        try (BufferedReader reader = Files.newBufferedReader(file.toPath())) {
+            List<String> lines = reader.lines().collect(Collectors.toList());
+            
+            if (lines.size() != 9) throw new IOException("9 lines expected, but `" + lines.size() + "` found");
+            
+            
+            int[][] board = lines.stream()
+                .map(line -> Arrays.stream(line.trim().split("\\s+"))
+                    .mapToInt(Integer::parseInt)
+                    .toArray())
+                    .toArray(int[][]::new);
+                
+            boolean isValid = Arrays.stream(board)
+                .allMatch(row -> row.length == 9 && Arrays.stream(row).allMatch(n -> n >= 0 && n <= 9));
+            
+            if (!isValid) throw new IOException("Each line should have 9 integer values in the range 0..9");
+            
+            return board;
+        }
     }
 
     /**
      * Save a Sudoku board to a file (.txt = text, .sud = binary)
      */
     public static void save(File file, int[][] board) throws IOException {
-        //TODO
+        if (board == null) {
+            throw new IOException("Board shouldn't be null");
+        }
+        
+        String filename = file.getName().toLowerCase();
+        
+        if (filename.endsWith(".sud")) {
+            try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file))) {
+                oos.writeObject(board);
+            }
+        } else {
+            try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(file.toPath()))) {
+                Arrays.stream(board)
+                    .forEach(row -> {
+                        String line = Arrays.stream(row)
+                            .mapToObj(String::valueOf)
+                            .collect(Collectors.joining(" "));
+                        writer.println(line);
+                    });
+            }
+        }
     }
 
     public static long countFilledCells(int[][] board) {
@@ -170,8 +225,7 @@ public class SudokuSolver {
         return State.stateFromSols(new SudokuSolverDLX(false).countSolutions.applyAsLong(board, 4L));
     }
 
-    record Remaining(int cellIdx, Iterator<Integer> digits) {
-    }
+    record Remaining(int cellIdx, Iterator<Integer> digits) {}
 
     public static State solve(int[][] board, boolean randomize) {
         var cells = IntStream.range(0, 81)
@@ -231,9 +285,9 @@ public class SudokuSolver {
     }
 
     /**
-     * Checks board is safe or not. That means given num can be placed in [row][col]
+     * Checks board is safe or not. That means if given num can be placed in [row][col]
      * That's based on Sudoku rules.
-     * If given num is in given column, row or in 3x3 box then board is safe.
+     * If given num is not in given column, row or in 3x3 box then board is safe.
      *
      * @param board 2D array with int values that represent board and its values.
      * @param row   Given row
