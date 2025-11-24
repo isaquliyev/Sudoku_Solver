@@ -1,5 +1,11 @@
 package hu.advjava.mcpsudoku;
 
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+
 /** Example puzzles */
 public enum ExampleSudoku {
     EASY_1
@@ -166,9 +172,11 @@ public enum ExampleSudoku {
 
     // TODO store the boards and the solution boards
 
-    public static final ???<String, ???, ???> findByName =
+    public static final BiFunction<String, Function<String, String>, Optional<ExampleSudoku>> findByName =
         (expected, getName) ->
-            ???;
+            Arrays.stream(values())
+                .filter(example -> Objects.equals(getName.apply(example.name()), expected))
+                .findFirst();
 
     public static final ??? deepCopyBoard =
         original -> ???;
